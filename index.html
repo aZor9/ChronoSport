@@ -65,6 +65,11 @@
     /* Small tweaks so input labels and lists are clearer */
     label.form-label{color:var(--muted)}
     ul.small-muted{color:var(--muted);margin-left:1rem}
+
+    /* Add hover effect for control buttons */
+    .controls .btn:hover {
+      border: 2px solid var(--accent);
+    }
   </style>
 </head>
 <body>
@@ -214,6 +219,45 @@
   let elapsed=0;
   let started=false; // becomes true after first start, false after reset/finish
 
+    // Persistence for page reloads
+    const STORAGE_KEY = 'chronoState_v1';
+
+    function saveState(){
+      try{
+        const toSave = { seq, idx, remaining, elapsed, running, started, totalTime, savedAt: Date.now() };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+      }catch(e){ console.warn('saveState failed',e); }
+    }
+
+    function clearSavedState(){ try{ localStorage.removeItem(STORAGE_KEY); }catch(e){} }
+
+    function restoreState(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw) return false;
+        const s = JSON.parse(raw);
+        if(!s || !Array.isArray(s.seq) || s.seq.length===0) return false;
+        seq = s.seq;
+        idx = typeof s.idx === 'number' ? s.idx : 0;
+        remaining = typeof s.remaining === 'number' ? s.remaining : (seq[0]?seq[0].duration:0);
+        elapsed = typeof s.elapsed === 'number' ? s.elapsed : 0;
+        totalTime = typeof s.totalTime === 'number' ? s.totalTime : seq.reduce((a,b)=>a+b.duration,0);
+        running = !!s.running;
+        started = !!s.started;
+        updateUI();
+        updateControls();
+        if(running){
+          if(intervalId) clearInterval(intervalId);
+          intervalId = setInterval(tick,1000);
+          if(wakeLockToggle.checked) requestWake();
+        }
+        return true;
+      }catch(e){ console.warn('restoreState failed',e); return false; }
+    }
+
+    // ensure we save before the page unloads
+    window.addEventListener('beforeunload', ()=>{ saveState(); });
+
     // update control button visibility
     function updateControls(){
       const startBtnEl = document.getElementById('startBtn');
@@ -287,7 +331,7 @@
       ];
     }
 
-    function loadSequence(s){ seq = s; idx=0; elapsed=0; totalTime = seq.reduce((a,b)=>a+b.duration,0); remaining = seq[0]?seq[0].duration:0; updateUI(); }
+  function loadSequence(s){ seq = s; idx=0; elapsed=0; totalTime = seq.reduce((a,b)=>a+b.duration,0); remaining = seq[0]?seq[0].duration:0; updateUI(); saveState(); }
 
 
 
@@ -305,7 +349,7 @@
 
     function tick(){
       if(!running) return;
-      if(remaining>0){ remaining--; elapsed++; updateUI(); if(soundOn.checked && remaining<=3 && remaining>0) playBeep(remaining); }
+      if(remaining>0){ remaining--; elapsed++; updateUI(); saveState(); if(soundOn.checked && remaining<=3 && remaining>0) playBeep(remaining); }
       else {
         // end of stage
         playBeep(0);
@@ -318,17 +362,19 @@
           } else {
             if(wakeLockToggle.checked) releaseWake();
           }
+          clearSavedState();
           updateControls();
           return;
         }
         remaining = seq[idx].duration;
         updateUI();
+        saveState();
       }
     }
 
-  function start(){ if(!seq.length) return; if(!running){ running=true; started=true; intervalId = setInterval(tick,1000); if(wakeLockToggle.checked) requestWake(); } }
-  function pause(){ running=false; if(intervalId){ clearInterval(intervalId); intervalId=null; } }
-  function reset(){ pause(); started=false; loadSequence(seq); if(wakeLockToggle.checked) releaseWake(); }
+  function start(){ if(!seq.length) return; if(!running){ running=true; started=true; intervalId = setInterval(tick,1000); if(wakeLockToggle.checked) requestWake(); saveState(); } }
+  function pause(){ running=false; if(intervalId){ clearInterval(intervalId); intervalId=null; } saveState(); }
+  function reset(){ pause(); started=false; loadSequence(seq); if(wakeLockToggle.checked) releaseWake(); clearSavedState(); }
 
   // wire control visibility updates
   // call updateControls at the end of these lifecycle functions
@@ -414,9 +460,11 @@
       if(document.visibilityState==='visible' && wakeLockToggle.checked && !wakeLock){ await requestWake(); }
     });
 
-    // Initialize default: load tabata preset 20/10 x8
-  loadSequence(buildTabata());
-  updateControls();
+    // Initialize default: try to restore previous state, otherwise load tabata preset 20/10 x8
+    if(!restoreState()){
+      loadSequence(buildTabata());
+      updateControls();
+    }
 
     // Load 4F hotkey
     document.addEventListener('keydown',(e)=>{ if(e.key==='4'){ loadSequence(build4FantastiquesSeq); start(); } });
