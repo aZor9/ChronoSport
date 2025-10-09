@@ -166,6 +166,7 @@
               <button id="importBtn" class="btn btn-sm btn-outline-light">Importer séquence</button>
               <input id="importFile" type="file" accept="application/json" style="display:none">
               <button id="exportBtn" class="btn btn-sm btn-outline-light">Exporter séquence</button>
+              <button id="navigateBtn" class="btn btn-sm btn-outline-light">4 Fantastiques</button>
             </div>
           </div>
         </div>
@@ -458,6 +459,12 @@
     // Page visibility: re-request wake lock if needed
     document.addEventListener('visibilitychange', async ()=>{
       if(document.visibilityState==='visible' && wakeLockToggle.checked && !wakeLock){ await requestWake(); }
+    });
+
+    // Navigation button
+    const navigateBtn = document.getElementById('navigateBtn');
+    navigateBtn.addEventListener('click', ()=>{
+      window.location.href = '4fantastiques.html';
     });
 
     // Initialize default: try to restore previous state, otherwise load tabata preset 20/10 x8

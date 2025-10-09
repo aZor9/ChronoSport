@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chronomètre — 4 Fantastiques</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Theme colors: increased contrast for accessibility */
+    :root{
+      --bg:#071022; /* page background */
+      --card:#071626; /* card background (slightly lighter than page) */
+      --accent:#38bdf8;
+      --muted:#f1f5f9; /* very light muted color for high contrast */
+      --text:#e6eef6;
+      --border:rgba(255,255,255,0.08);
+    }
+    body{background:linear-gradient(180deg,#071022 0%,#071626 100%);color:var(--text);font-family:Inter,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,0.03);border-radius:12px}
+    .big-time{font-weight:700;font-size:clamp(2.4rem,5vw,4rem);letter-spacing:2px}
+    .sub{color:var(--muted)}
+    .btn-accent{background:var(--accent);color:#042028}
+    .progress{height:12px;border-radius:8px;background:rgba(255,255,255,0.04)}
+    .stage-label{font-weight:700}
+    .small-muted{font-size:.9rem;color:var(--muted)}
+    .controls .form-control{background:transparent;color:inherit;border-color:var(--border)}
+    .toggle-wake{cursor:pointer}
+    footer{opacity:.75;font-size:.85rem}
+
+    /* Responsiveness improvements */
+    .controls{gap:.5rem}
+    /* default button sizing (desktop) */
+    .controls .btn{min-width:110px}
+    /* Tablet: relax min-width so buttons don't overflow */
+    @media (max-width:992px){
+      .controls .btn{min-width:90px;padding-left:.5rem;padding-right:.5rem;font-size:.9rem}
+      /* slightly smaller big time on tablets */
+      .big-time{font-size:3rem}
+      .card{padding:1rem}
+    }
+    @media (max-width:768px){
+      /* slightly larger timer on small mobile devices for readability */
+      .big-time{font-size:3.5rem}
+      .controls{flex-wrap:wrap}
+      .controls .btn{flex:1;min-width:0}
+      .card{padding:1rem}
+    }
+
+    /* Add hover effect for control buttons */
+    .controls .btn:hover {
+      border: 2px solid var(--accent);
+    }
+
+    /* Make bootstrap's text-muted lighten to match theme */
+    .text-muted{color:var(--muted) !important}
+
+    /* Ensure headings are bright on the dark background */
+    h1,h2,h3,h4,h5,h6{ color:var(--text); }
+
+    /* Make main display texts explicitly bright for readability */
+    #stage, #timeDisplay, #roundInfo { color: #ffffff; }
+
+    /* Small tweaks so input labels and lists are clearer */
+    label.form-label{color:var(--muted)}
+    ul.small-muted{color:var(--muted);margin-left:1rem}
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 col-md-10">
+        <div class="card p-4 shadow-sm">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h3 class="mb-0">Chronomètre — 4 Fantastiques</h3>
+            </div>
+            <div class="text-end">
+              <div class="small-muted">Écran <span id="wakeStatus" class="fw-bold">Inactif</span></div>
+            </div>
+          </div>
+
+          <div class="text-center py-3">
+            <div id="stage" class="stage-label mb-2">Prêt</div>
+            <div id="timeDisplay" class="big-time">00:00</div>
+            <!-- Removed roundInfo -->
+          </div>
+
+          <div class="d-flex gap-2 justify-content-center mb-3 controls">
+            <button id="startBtn" class="btn btn-accent px-4">Démarrer</button>
+            <button id="pauseBtn" class="btn btn-outline-light px-3">Pause</button>
+            <button id="resetBtn" class="btn btn-light px-3">Reset</button>
+          </div>
+
+          <div class="mb-3">
+            <div class="progress mb-2">
+              <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%"></div>
+            </div>
+            <div class="d-flex justify-content-between small-muted">
+              <div id="progressLeft">—</div>
+              <div id="progressRight">—</div>
+            </div>
+            <!-- Custom progress indicator -->
+            <div class="text-center mt-2">
+              <span id="progressIndicator" class="small-muted">Étape 0/0</span>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between">
+            <button id="navigateBtn" class="btn btn-sm btn-outline-light">Aller à l'accueil</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <audio id="beep"></audio>
+
+  <script>
+    // --- Utils ---
+    const fmt = (s)=>{ const m=Math.floor(s/60); const sec=s%60; return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}` }
+
+    // --- Elements ---
+    const timeDisplay=document.getElementById('timeDisplay');
+    const stageEl=document.getElementById('stage');
+    const progressBar=document.getElementById('progressBar');
+    const progressLeft=document.getElementById('progressLeft');
+    const progressRight=document.getElementById('progressRight');
+
+    const startBtn=document.getElementById('startBtn');
+    const pauseBtn=document.getElementById('pauseBtn');
+    const resetBtn=document.getElementById('resetBtn');
+
+    const wakeStatus=document.getElementById('wakeStatus');
+    const beepEl=document.getElementById('beep');
+    beepEl.src = "data:audio/wav;base64,UklGRrQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YbQAAAAA"; // tiny silent placeholder
+
+    // --- State ---
+    let seq = [
+      {label:'Partie 1 : Exos 1', duration:30, type:'work'},
+      {label:'Pause', duration:10, type:'rest'},
+      {label:'Partie 2 : Exos 1', duration:30, type:'work'},
+      {label:'Partie 2 : Exos 2', duration:30, type:'work'},
+      {label:'Pause', duration:10, type:'rest'},
+      {label:'Partie 3 : Exos 1', duration:30, type:'work'},
+      {label:'Partie 3 : Exos 2', duration:30, type:'work'},
+      {label:'Partie 3 : Exos 3', duration:30, type:'work'},
+      {label:'Pause', duration:10, type:'rest'},
+      {label:'Partie 4 : Exos 1', duration:30, type:'work'},
+      {label:'Partie 4 : Exos 2', duration:30, type:'work'},
+      {label:'Partie 4 : Exos 3', duration:30, type:'work'},
+      {label:'Partie 4 : Exos 4', duration:30, type:'work'}
+    ];
+    let idx = 0;
+    let remaining = seq[0].duration;
+    let running=false;
+    let intervalId=null;
+    let totalTime=seq.reduce((a,b)=>a+b.duration,0);
+    let elapsed=0;
+    let started=false;
+
+    // --- Persist State in LocalStorage ---
+    function saveState() {
+      const state = {
+        idx,
+        remaining,
+        running,
+        started,
+        elapsed
+      };
+      localStorage.setItem('chronoState', JSON.stringify(state));
+    }
+
+    function restoreState() {
+      const savedState = localStorage.getItem('chronoState');
+      if (savedState) {
+        const state = JSON.parse(savedState);
+        idx = state.idx;
+        remaining = state.remaining;
+        running = state.running;
+        started = state.started;
+        elapsed = state.elapsed;
+
+        // Resume the timer if it was running
+        if (running) {
+          intervalId = setInterval(tick, 1000); // Ensure the timer continues ticking
+        }
+      }
+    }
+
+    // --- Update UI to manage button visibility and text ---
+    function updateUI(){
+      const current = seq[idx];
+      if(!current){
+        stageEl.textContent='Prêt';
+        timeDisplay.textContent='00:00';
+        progressBar.style.width='0%';
+        progressLeft.textContent='—';
+        progressRight.textContent='—';
+        progressIndicator.textContent='Étape 0/0';
+        startBtn.style.display = 'inline-block';
+        pauseBtn.style.display = 'none';
+        resetBtn.style.display = 'none';
+        startBtn.textContent = 'Démarrer';
+        return;
+      }
+      stageEl.textContent = `${current.label} (${current.type})`;
+      timeDisplay.textContent = fmt(remaining);
+      const pct = Math.min(100, (elapsed/totalTime)*100 || 0);
+      progressBar.style.width = pct+'%';
+      progressLeft.textContent = fmt(Math.max(0,totalTime-elapsed-remaining));
+      progressRight.textContent = fmt(totalTime-elapsed);
+      progressIndicator.textContent = `Étape ${idx+1}/${seq.length}`;
+
+      // Manage button visibility and text
+      if (!started) {
+        startBtn.style.display = 'inline-block';
+        pauseBtn.style.display = 'none';
+        resetBtn.style.display = 'none';
+        startBtn.textContent = 'Démarrer';
+      } else if (running) {
+        startBtn.style.display = 'none';
+        pauseBtn.style.display = 'inline-block';
+        resetBtn.style.display = 'inline-block';
+      } else {
+        startBtn.style.display = 'inline-block';
+        pauseBtn.style.display = 'none';
+        resetBtn.style.display = 'inline-block';
+        startBtn.textContent = 'Reprendre';
+      }
+    }
+
+    // --- Timer Logic ---
+    function tick(){
+      if(!running) return;
+      if(remaining>0){ remaining--; elapsed++; updateUI(); saveState(); if(remaining<=3 && remaining>0) playBeep(remaining); }
+      else {
+        playBeep(0);
+        idx++;
+        if(idx>=seq.length){
+          running=false; started=false; clearInterval(intervalId); intervalId=null; stageEl.textContent='Terminé'; timeDisplay.textContent='00:00'; progressBar.style.width='100%';
+          saveState();
+          return;
+        }
+        remaining = seq[idx].duration;
+        updateUI();
+        saveState();
+      }
+    }
+
+    function start(){ if(!seq.length) return; if(!running){ running=true; started=true; intervalId = setInterval(tick,1000); saveState(); } }
+    function pause(){ running=false; if(intervalId){ clearInterval(intervalId); intervalId=null; saveState(); } }
+    function reset(){ pause(); started=false; idx=0; remaining=seq[0].duration; elapsed=0; updateUI(); saveState(); }
+
+    // --- Event Listeners ---
+    startBtn.addEventListener('click', ()=>{ start(); updateUI(); });
+    pauseBtn.addEventListener('click', ()=>{ if(running) pause(); else start(); updateUI(); });
+    resetBtn.addEventListener('click', ()=>{ reset(); updateUI(); });
+
+    // Navigation button
+    const navigateBtn = document.getElementById('navigateBtn');
+    navigateBtn.addEventListener('click', ()=>{
+      window.location.href = 'index.html';
+    });
+
+    function playBeep(n){
+      try{
+        const ctx = new (window.AudioContext||window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type='sine';
+        o.frequency.value = n>0? 880 : 440;
+        g.gain.value = 0.6;
+        o.connect(g); g.connect(ctx.destination);
+        o.start(); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
+        o.stop(ctx.currentTime + 0.19);
+      }catch(e){ console.warn('Audio API not available',e); }
+    }
+
+    // Restore state on page load
+    restoreState();
+    updateUI();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
