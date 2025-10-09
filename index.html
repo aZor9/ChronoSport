@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chronomètre Tabata — 4 Fantastiques</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* Theme colors: increased contrast for accessibility */
+    :root{
+      --bg:#071022; /* page background */
+      --card:#071626; /* card background (slightly lighter than page) */
+      --accent:#38bdf8;
+      --muted:#f1f5f9; /* very light muted color for high contrast */
+      --text:#e6eef6;
+      --border:rgba(255,255,255,0.08);
+    }
+    body{background:linear-gradient(180deg,#071022 0%,#071626 100%);color:var(--text);font-family:Inter,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,0.03);border-radius:12px}
+    .big-time{font-weight:700;font-size:clamp(2.4rem,5vw,4rem);letter-spacing:2px}
+    .sub{color:var(--muted)}
+    .btn-accent{background:var(--accent);color:#042028}
+    .progress{height:12px;border-radius:8px;background:rgba(255,255,255,0.04)}
+    .stage-label{font-weight:700}
+    .small-muted{font-size:.9rem;color:var(--muted)}
+    .controls .form-control{background:transparent;color:inherit;border-color:var(--border)}
+    .toggle-wake{cursor:pointer}
+    footer{opacity:.75;font-size:.85rem}
+
+    /* Responsiveness improvements */
+    .controls{gap:.5rem}
+    /* default button sizing (desktop) */
+    .controls .btn{min-width:110px}
+    /* Tablet: relax min-width so buttons don't overflow */
+    @media (max-width:992px){
+      .controls .btn{min-width:90px;padding-left:.5rem;padding-right:.5rem;font-size:.9rem}
+      /* slightly smaller big time on tablets */
+      .big-time{font-size:3rem}
+      .card{padding:1rem}
+    }
+    @media (max-width:768px){
+      .big-time{font-size:2.4rem}
+      .controls{flex-wrap:wrap}
+      .controls .btn{flex:1;min-width:0}
+      .card{padding:1rem}
+    }
+
+    /* Add extra horizontal gap between the two main columns on larger screens */
+    @media (min-width:992px){
+      .columns-desktop-gap > .col-md-6 { padding-left: 1rem; padding-right: 1rem; }
+      /* compensate outer container padding so visual spacing increases without shrinking columns */
+      .columns-desktop-gap { margin-left: -0.5rem; margin-right: -0.5rem; }
+    }
+
+    /* Make bootstrap's text-muted lighten to match theme */
+    .text-muted{color:var(--muted) !important}
+
+  /* Ensure headings are bright on the dark background */
+  h1,h2,h3,h4,h5,h6{ color:var(--text); }
+
+  /* Make main display texts explicitly bright for readability */
+  #stage, #timeDisplay, #roundInfo { color: #ffffff; }
+
+    /* Small tweaks so input labels and lists are clearer */
+    label.form-label{color:var(--muted)}
+    ul.small-muted{color:var(--muted);margin-left:1rem}
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 col-md-10">
+        <div class="card p-4 shadow-sm">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <h3 class="mb-0">Chronomètre Tabata</h3>
+            </div>
+            <div class="text-end">
+              <div class="small-muted">Écran <span id="wakeStatus" class="fw-bold">Inactif</span></div>
+            </div>
+          </div>
+
+          <div class="row g-3 columns-desktop-gap">
+            <div class="col-md-6">
+              <div class="text-center py-3">
+                <div id="stage" class="stage-label mb-2">Prêt</div>
+                <div id="timeDisplay" class="big-time">00:00</div>
+                <div class="small-muted mt-2" id="roundInfo">Séquence: —</div>
+              </div>
+
+              <div class="d-flex gap-2 justify-content-center mb-3 controls">
+                <button id="startBtn" class="btn btn-accent px-4">Démarrer</button>
+                <button id="pauseBtn" class="btn btn-outline-light px-3">Pause</button>
+                <button id="resetBtn" class="btn btn-light px-3">Reset</button>
+              </div>
+
+              <div class="mb-3">
+                <div class="progress mb-2"><div id="progressBar" class="progress-bar" role="progressbar" style="width:0%"></div></div>
+                <div class="d-flex justify-content-between small-muted"><div id="progressLeft">—</div><div id="progressRight">—</div></div>
+              </div>
+
+              <div class="d-flex gap-2 justify-content-center">
+                <button id="presetTabata" class="btn btn-outline-secondary btn-sm">Preset Tabata (20/10 x8)</button>
+                <button id="preset4F" class="btn btn-outline-secondary btn-sm">4 Fantastiques</button>
+                <button id="customSave" class="btn btn-outline-secondary btn-sm">Lancer Personnalisé</button>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="mb-3">
+                <h6 class="mb-2">Réglages Tabata</h6>
+                <div class="row g-2">
+                  <div class="col-6">
+                    <label class="form-label small-muted">Durée ex. (s)</label>
+                    <input id="tabataWork" type="number" class="form-control" value="20" min="1">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small-muted">Pause (s)</label>
+                    <input id="tabataRest" type="number" class="form-control" value="10" min="0">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small-muted">Répétitions</label>
+                    <input id="tabataRounds" type="number" class="form-control" value="8" min="1">
+                  </div>
+                  <div class="col-6">
+                    <label class="form-label small-muted">Précompte (s)</label>
+                    <input id="countIn" type="number" class="form-control" value="5" min="0">
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <div class="form-check form-switch mb-2">
+                  <input class="form-check-input" type="checkbox" id="loop4f">
+                  <label class="form-check-label small-muted" for="loop4f">Relancer automatiquement</label>
+                </div>
+                <div class="small-muted">Volume alerte</div>
+                <input id="volume" type="range" min="0" max="1" step="0.05" value="0.6" class="form-range">
+              </div>
+
+              <div class="mb-3">
+                <h6 class="mb-2">Options</h6>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="soundOn" checked>
+                  <label class="form-check-label small-muted" for="soundOn">Bips / Alarmes</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" id="wakeLockToggle">
+                  <label class="form-check-label small-muted" for="wakeLockToggle">Empêcher l'écran de s'éteindre</label>
+                </div>
+                <div class="small-muted mt-3">Compatibilité: la plupart des navigateurs modernes supportent l'API Wake Lock. Si non supporté, le navigateur peut demander une interaction utilisateur.</div>
+              </div>
+
+            </div>
+          </div>
+
+          <hr class="border-light opacity-10">
+          <div class="d-flex justify-content-between align-items-center">
+            <!-- <div class="small-muted">Designed for sport — sobre & efficace</div> -->
+            <div class="d-flex gap-2">
+              <button id="importBtn" class="btn btn-sm btn-outline-light">Importer séquence</button>
+              <input id="importFile" type="file" accept="application/json" style="display:none">
+              <button id="exportBtn" class="btn btn-sm btn-outline-light">Exporter séquence</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <audio id="beep"></audio>
+
+  <script>
+    // --- Utils ---
+    const fmt = (s)=>{ const m=Math.floor(s/60); const sec=s%60; return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}` }
+
+    // --- Elements ---
+    const timeDisplay=document.getElementById('timeDisplay');
+    const stageEl=document.getElementById('stage');
+    const progressBar=document.getElementById('progressBar');
+    const progressLeft=document.getElementById('progressLeft');
+    const progressRight=document.getElementById('progressRight');
+    const roundInfo=document.getElementById('roundInfo');
+
+    const startBtn=document.getElementById('startBtn');
+    const pauseBtn=document.getElementById('pauseBtn');
+    const resetBtn=document.getElementById('resetBtn');
+    const presetTabata=document.getElementById('presetTabata');
+    const preset4F=document.getElementById('preset4F');
+    const customSave=document.getElementById('customSave');
+
+    const tabataWork=document.getElementById('tabataWork');
+    const tabataRest=document.getElementById('tabataRest');
+    const tabataRounds=document.getElementById('tabataRounds');
+    const countIn=document.getElementById('countIn');
+    const loop4f=document.getElementById('loop4f');
+    const soundOn=document.getElementById('soundOn');
+    const wakeLockToggle=document.getElementById('wakeLockToggle');
+    const wakeStatus=document.getElementById('wakeStatus');
+    const volume=document.getElementById('volume');
+    const exportBtn=document.getElementById('exportBtn');
+
+    const beepEl=document.getElementById('beep');
+    beepEl.src = "data:audio/wav;base64,UklGRrQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YbQAAAAA"; // tiny silent placeholder
+
+    // --- State ---
+    let seq = []; // array of {label,duration, type:'work'|'rest'| 'pause'}
+    let idx = 0;
+    let remaining = 0;
+    let running=false;
+    let intervalId=null;
+    let totalTime=0;
+  let elapsed=0;
+  let started=false; // becomes true after first start, false after reset/finish
+
+    // update control button visibility
+    function updateControls(){
+      const startBtnEl = document.getElementById('startBtn');
+      const pauseBtnEl = document.getElementById('pauseBtn');
+      const resetBtnEl = document.getElementById('resetBtn');
+      if(running){
+        // when running show only Pause
+        startBtnEl.style.display='none';
+        resetBtnEl.style.display='none';
+        pauseBtnEl.style.display='inline-block';
+        pauseBtnEl.textContent = 'Pause';
+      } else if(started){
+        // paused state (sequence was started) -> show Resume (pauseBtn) and Reset
+        startBtnEl.style.display='none';
+        resetBtnEl.style.display='inline-block';
+        pauseBtnEl.style.display='inline-block';
+        pauseBtnEl.textContent = 'Reprendre';
+      } else {
+        // initial / after reset / finished: show Start only
+        startBtnEl.style.display='inline-block';
+        resetBtnEl.style.display='none';
+        pauseBtnEl.style.display='none';
+        pauseBtnEl.textContent = 'Pause';
+      }
+    }
+
+    // Wake lock state
+    let wakeLock = null;
+    async function requestWake(){
+      try{
+        if('wakeLock' in navigator){
+          wakeLock = await navigator.wakeLock.request('screen');
+          wakeStatus.textContent='Actif';
+          wakeLock.addEventListener('release', ()=>{ wakeStatus.textContent='Relâché' });
+        } else {
+          wakeStatus.textContent='Non supporté';
+        }
+      }catch(e){ console.warn('WakeLock refused',e); wakeStatus.textContent='Erreur'; }
+    }
+    async function releaseWake(){ if(wakeLock){ try{ await wakeLock.release(); }catch(e){} wakeLock=null; wakeStatus.textContent='Inactif'; }}
+
+    // Build preset functions
+    function buildTabata(){
+      const w = Math.max(1,Math.floor(Number(tabataWork.value)||20));
+      const r = Math.max(0,Math.floor(Number(tabataRest.value)||10));
+      const rounds = Math.max(1,Math.floor(Number(tabataRounds.value)||8));
+      const ci = Math.max(0,Math.floor(Number(countIn.value)||5));
+      const s=[];
+      if(ci>0) s.push({label:'Précompte',duration:ci,type:'countin'});
+      for(let i=1;i<=rounds;i++){
+        s.push({label:`Exercice ${i}`,duration:w,type:'work'});
+        if(i<rounds && r>0) s.push({label:`Pause ${i}`,duration:r,type:'rest'});
+      }
+      return s;
+    }
+
+    function build4Fantastiques(){
+      // fixed sequence
+      return [
+        {label:'Ex 1',duration:30,type:'work'},
+        {label:'Pause 1',duration:10,type:'rest'},
+        {label:'Ex 2',duration:60,type:'work'},
+        {label:'Pause 2',duration:10,type:'rest'},
+        {label:'Ex 3',duration:90,type:'work'},
+        {label:'Pause 3',duration:10,type:'rest'},
+        {label:'Ex 4',duration:120,type:'work'}
+      ];
+    }
+
+    function loadSequence(s){ seq = s; idx=0; elapsed=0; totalTime = seq.reduce((a,b)=>a+b.duration,0); remaining = seq[0]?seq[0].duration:0; updateUI(); }
+
+
+
+    function updateUI(){
+      const current = seq[idx];
+      if(!current){ stageEl.textContent='Prêt'; timeDisplay.textContent='00:00'; progressBar.style.width='0%'; roundInfo.textContent='Séquence: —'; progressLeft.textContent='—'; progressRight.textContent='—'; return }
+      stageEl.textContent = `${current.label} (${current.type})`;
+      timeDisplay.textContent = fmt(remaining);
+      roundInfo.textContent = `Étape ${idx+1}/${seq.length}`;
+      const pct = Math.min(100, (elapsed/totalTime)*100 || 0);
+      progressBar.style.width = pct+'%';
+      progressLeft.textContent = fmt(Math.max(0,totalTime-elapsed-remaining));
+      progressRight.textContent = fmt(totalTime-elapsed);
+    }
+
+    function tick(){
+      if(!running) return;
+      if(remaining>0){ remaining--; elapsed++; updateUI(); if(soundOn.checked && remaining<=3 && remaining>0) playBeep(remaining); }
+      else {
+        // end of stage
+        playBeep(0);
+        idx++;
+        if(idx>=seq.length){
+          // finished
+          running=false; started=false; clearInterval(intervalId); intervalId=null; stageEl.textContent='Terminé'; timeDisplay.textContent='00:00'; progressBar.style.width='100%';
+          if(loop4f.checked && seq===build4FantastiquesSeq){ // special loop for 4f
+            setTimeout(()=>{ loadSequence(build4FantastiquesSeq); start(); },500);
+          } else {
+            if(wakeLockToggle.checked) releaseWake();
+          }
+          updateControls();
+          return;
+        }
+        remaining = seq[idx].duration;
+        updateUI();
+      }
+    }
+
+  function start(){ if(!seq.length) return; if(!running){ running=true; started=true; intervalId = setInterval(tick,1000); if(wakeLockToggle.checked) requestWake(); } }
+  function pause(){ running=false; if(intervalId){ clearInterval(intervalId); intervalId=null; } }
+  function reset(){ pause(); started=false; loadSequence(seq); if(wakeLockToggle.checked) releaseWake(); }
+
+  // wire control visibility updates
+  // call updateControls at the end of these lifecycle functions
+  const _start = start;
+  start = function(){ _start(); updateControls(); };
+  const _pause = pause;
+  pause = function(){ _pause(); updateControls(); };
+  const _reset = reset;
+  reset = function(){ _reset(); updateControls(); };
+  const _loadSequence = loadSequence;
+  loadSequence = function(s){ _loadSequence(s); updateControls(); };
+
+    function playBeep(n){ if(!soundOn.checked) return; // generate quick oscillator or short beep
+      try{
+        const ctx = new (window.AudioContext||window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type='sine';
+        o.frequency.value = n>0? 880 : 440;
+        g.gain.value = Number(volume.value)||0.6;
+        o.connect(g); g.connect(ctx.destination);
+        o.start(); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
+        o.stop(ctx.currentTime + 0.19);
+      }catch(e){ console.warn('Audio API not available',e); }
+    }
+
+    // --- Event bindings ---
+    startBtn.addEventListener('click', ()=>{ start(); });
+    pauseBtn.addEventListener('click', ()=>{ if(running) pause(); else start(); });
+    resetBtn.addEventListener('click', ()=>{ reset(); });
+
+    presetTabata.addEventListener('click', ()=>{ loadSequence(buildTabata()); });
+    let build4FantastiquesSeq = build4Fantastiques();
+    preset4F.addEventListener('click', ()=>{ loadSequence(build4FantastiquesSeq); });
+    customSave.addEventListener('click', ()=>{ loadSequence(buildTabata()); start(); });
+
+    exportBtn.addEventListener('click', ()=>{
+      if(!seq.length) return alert('Aucune séquence chargée');
+      const blob = new Blob([JSON.stringify(seq,null,2)],{type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download='sequence.json'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    // Import sequence button + handler
+    const importBtn = document.getElementById('importBtn');
+    const importFile = document.getElementById('importFile');
+
+    importBtn.addEventListener('click', ()=>{ importFile.click(); });
+
+    importFile.addEventListener('change', (ev)=>{
+      const f = ev.target.files && ev.target.files[0];
+      if(!f) return;
+      const reader = new FileReader();
+      reader.onload = (e)=>{
+        try{
+          const data = JSON.parse(e.target.result);
+          // Basic validation: array of objects with label and duration (number)
+          if(!Array.isArray(data)) throw new Error('Le fichier doit contenir un tableau');
+          for(const it of data){
+            if(typeof it !== 'object' || it === null) throw new Error('Chaque élément doit être un objet');
+            if(typeof it.label !== 'string') throw new Error('Chaque étape doit avoir une propriété "label" de type string');
+            if(typeof it.duration !== 'number' || !isFinite(it.duration) || it.duration < 0) throw new Error('Chaque étape doit avoir une propriété "duration" (nombre positif)');
+            if(it.type && typeof it.type !== 'string') throw new Error('Propriété "type" invalide');
+          }
+          loadSequence(data);
+          alert('Séquence importée avec succès');
+        }catch(err){
+          console.error(err);
+          alert('Erreur lors de l\'import: '+err.message);
+        } finally { importFile.value=''; }
+      };
+      reader.onerror = ()=>{ alert('Impossible de lire le fichier'); importFile.value=''; };
+      reader.readAsText(f);
+    });
+
+    // wake lock toggle
+    wakeLockToggle.addEventListener('change', async ()=>{
+      if(wakeLockToggle.checked){ await requestWake(); } else { await releaseWake(); }
+    });
+
+    // Page visibility: re-request wake lock if needed
+    document.addEventListener('visibilitychange', async ()=>{
+      if(document.visibilityState==='visible' && wakeLockToggle.checked && !wakeLock){ await requestWake(); }
+    });
+
+    // Initialize default: load tabata preset 20/10 x8
+  loadSequence(buildTabata());
+  updateControls();
+
+    // Load 4F hotkey
+    document.addEventListener('keydown',(e)=>{ if(e.key==='4'){ loadSequence(build4FantastiquesSeq); start(); } });
+
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
