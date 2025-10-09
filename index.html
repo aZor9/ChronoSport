@@ -39,7 +39,8 @@
       .card{padding:1rem}
     }
     @media (max-width:768px){
-      .big-time{font-size:2.4rem}
+      /* slightly larger timer on small mobile devices for readability */
+      .big-time{font-size:2.8rem}
       .controls{flex-wrap:wrap}
       .controls .btn{flex:1;min-width:0}
       .card{padding:1rem}
@@ -148,7 +149,6 @@
                   <input class="form-check-input" type="checkbox" id="wakeLockToggle">
                   <label class="form-check-label small-muted" for="wakeLockToggle">Empêcher l'écran de s'éteindre</label>
                 </div>
-                <div class="small-muted mt-3">Compatibilité: la plupart des navigateurs modernes supportent l'API Wake Lock. Si non supporté, le navigateur peut demander une interaction utilisateur.</div>
               </div>
 
             </div>
@@ -224,12 +224,16 @@
         startBtnEl.style.display='none';
         resetBtnEl.style.display='none';
         pauseBtnEl.style.display='inline-block';
+        // running -> pause is a neutral outline button
+        pauseBtnEl.className = 'btn btn-outline-light px-3';
         pauseBtnEl.textContent = 'Pause';
       } else if(started){
         // paused state (sequence was started) -> show Resume (pauseBtn) and Reset
         startBtnEl.style.display='none';
         resetBtnEl.style.display='inline-block';
         pauseBtnEl.style.display='inline-block';
+        // paused -> make the 'Reprendre' button stand out in accent color
+        pauseBtnEl.className = 'btn btn-accent px-3';
         pauseBtnEl.textContent = 'Reprendre';
       } else {
         // initial / after reset / finished: show Start only
