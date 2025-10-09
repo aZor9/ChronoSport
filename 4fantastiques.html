@@ -229,6 +229,32 @@
       }
     }
 
+    // --- Wake Lock ---
+    let wakeLock = null;
+
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+          wakeStatus.textContent = 'Actif';
+        }
+      } catch (err) {
+        console.error('Failed to acquire wake lock:', err);
+      }
+    }
+
+    async function releaseWakeLock() {
+      try {
+        if (wakeLock) {
+          await wakeLock.release();
+          wakeLock = null;
+          wakeStatus.textContent = 'Inactif';
+        }
+      } catch (err) {
+        console.error('Failed to release wake lock:', err);
+      }
+    }
+
     // --- Timer Logic ---
     function tick(){
       if(!running) return;
@@ -247,8 +273,8 @@
       }
     }
 
-    function start(){ if(!seq.length) return; if(!running){ running=true; started=true; intervalId = setInterval(tick,1000); saveState(); } }
-    function pause(){ running=false; if(intervalId){ clearInterval(intervalId); intervalId=null; saveState(); } }
+    function start(){ if(!seq.length) return; if(!running){ running=true; started=true; intervalId = setInterval(tick,1000); saveState(); requestWakeLock(); } }
+    function pause(){ running=false; if(intervalId){ clearInterval(intervalId); intervalId=null; saveState(); releaseWakeLock(); } }
     function reset(){ pause(); started=false; idx=0; remaining=seq[0].duration; elapsed=0; updateUI(); saveState(); }
 
     // --- Event Listeners ---
@@ -259,6 +285,7 @@
     // Navigation button
     const navigateBtn = document.getElementById('navigateBtn');
     navigateBtn.addEventListener('click', ()=>{
+      releaseWakeLock(); // Release wake lock before navigating
       window.location.href = 'index.html';
     });
 
