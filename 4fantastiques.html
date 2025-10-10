@@ -165,7 +165,8 @@
         remaining,
         running,
         started,
-        elapsed
+        elapsed,
+        timestamp: Date.now() // Save the current timestamp
       };
       localStorage.setItem('chronoState', JSON.stringify(state));
     }
@@ -180,9 +181,31 @@
         started = state.started;
         elapsed = state.elapsed;
 
-        // Resume the timer if it was running
+        // Synchronize the timer based on the elapsed time since the last save
+        const lastSavedTime = state.timestamp;
+        const now = Date.now();
+        const deltaSeconds = Math.floor((now - lastSavedTime) / 1000);
+
         if (running) {
-          intervalId = setInterval(tick, 1000); // Ensure the timer continues ticking
+          remaining -= deltaSeconds;
+          elapsed += deltaSeconds;
+
+          // If the current step is completed, move to the next step
+          while (remaining <= 0 && idx < seq.length - 1) {
+            elapsed += remaining; // Add the negative remaining to elapsed
+            idx++;
+            remaining += seq[idx].duration;
+          }
+
+          // If the sequence is finished, stop the timer
+          if (remaining <= 0 && idx >= seq.length - 1) {
+            running = false;
+            started = false;
+            remaining = 0;
+            idx = seq.length - 1;
+          } else {
+            intervalId = setInterval(tick, 1000); // Ensure the timer continues ticking
+          }
         }
       }
     }
