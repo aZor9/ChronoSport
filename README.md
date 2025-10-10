@@ -1,7 +1,7 @@
 # 🕒 Chronomètre Sport
 
 Site web pour gérer facilement les entraînements Tabata ou circuits chronométrés, avec une option spéciale : le **minuteur des 4 Fantastiques**.
-Disponnible sur : https://azor9.github.io/ChronoSport/ 
+Disponible sur : [ChronoSport](https://azor9.github.io/ChronoSport/)
 
 ---
 
@@ -37,6 +37,7 @@ Une séquence automatique d'entraînement :
 * 📵 Option **"Empêcher la mise en veille"** grâce à l’API Wake Lock (comme YouTube).
 * 🎚️ Réglage du volume.
 * ⌨️ Raccourci clavier : appuie sur **4** pour lancer directement le mode 4 Fantastiques.
+* 🔄 **Persistance de l’état** : le minuteur reprend là où il s’est arrêté après une actualisation.
 
 ---
 
@@ -46,6 +47,7 @@ Une séquence automatique d'entraînement :
 * **CSS3 + Bootstrap 5** : design sobre et responsive
 * **JavaScript (vanilla)** : logique du chronomètre, gestion des séquences et des sons
 * **API Wake Lock** : empêche l’écran de s’éteindre pendant les séances
+* **LocalStorage** : sauvegarde et restauration de l’état du minuteur
 
 ---
 
@@ -72,7 +74,9 @@ Fonctionne sur la plupart des navigateurs modernes.
 ## 📁 Structure du projet
 
 ```
-index.html        # Code complet du site (HTML, CSS, JS intégrés)
+index.html         # Page principale avec le mode Tabata, 4 fantastiques et un mode personnalisable
+4fantastiques.html # Page dédiée au mode "4 Fantastiques"
+README.md          # Documentation du projet
 ```
 
 ---
