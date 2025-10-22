@@ -27,6 +27,31 @@
     .toggle-wake{cursor:pointer}
     footer{opacity:.75;font-size:.85rem}
 
+  /* Overview grid styles (compact + phone-friendly) */
+  /* use auto columns so cells don't stretch to full width; grid centered */
+  .overview-grid{display:grid;grid-template-columns:repeat(4,auto);gap:8px;justify-content:center;justify-items:center}
+  /* smaller fixed-size boxes (won't fill parent), centered in grid */
+  .overview-cell{width:44px;height:44px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;padding:4px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  /* hide labels for now (can be restored by removing display:none) */
+  .overview-cell .label{font-size:.7rem;color:var(--muted);text-align:center;display:none}
+  /* Emoji larger for visibility inside small cell */
+  .overview-cell .status{font-size:2.4rem;line-height:1;margin-top:0}
+  .status-done{color:#16a34a} /* green */
+  .status-now{color:#0ea5e9} /* blue */
+  .status-empty{color:rgba(255,255,255,0.12)}
+
+  /* Extra small phones: make boxes a bit smaller but keep emoji readable */
+  @media (max-width:420px){
+    .overview-cell{width:40px;height:40px;padding:3px;border-radius:6px}
+    .overview-cell .status{font-size:2.6rem}
+    .overview-grid{gap:6px}
+  }
+
+  @media (min-width:421px) and (max-width:768px){
+    .overview-cell{width:46px;height:46px}
+    .overview-cell .status{font-size:2.6rem}
+  }
+
     /* Responsiveness improvements */
     .controls{gap:.5rem}
     /* default button sizing (desktop) */
@@ -35,7 +60,7 @@
     @media (max-width:992px){
       .controls .btn{min-width:90px;padding-left:.5rem;padding-right:.5rem;font-size:.9rem}
       /* slightly smaller big time on tablets */
-      .big-time{font-size:3rem}
+      .big-time{font-size:4rem}
       .card{padding:1rem}
     }
     @media (max-width:768px){
@@ -72,7 +97,7 @@
         <div class="card p-4 shadow-sm">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-              <h3 class="mb-0">Chronomètre — 4 Fantastiques</h3>
+              <h3 class="mb-0">Chronomètre - 4 Fantastiques</h3>
             </div>
             <div class="text-end">
               <div class="small-muted">Écran <span id="wakeStatus" class="fw-bold">Inactif</span></div>
@@ -89,6 +114,11 @@
             <button id="startBtn" class="btn btn-accent px-4">Démarrer</button>
             <button id="pauseBtn" class="btn btn-outline-light px-3">Pause</button>
             <button id="resetBtn" class="btn btn-light px-3">Reset</button>
+          </div>
+
+          <!-- Overview grid: large 4x4 visual helper -->
+          <div class="mb-3">
+            <div id="overview" class="overview-grid" aria-label="Vue d'ensemble des exercices"></div>
           </div>
 
           <div class="mb-3">
@@ -215,11 +245,11 @@
       const current = seq[idx];
       if(!current){
         stageEl.textContent='Prêt';
-        timeDisplay.textContent='00:00';
-        progressBar.style.width='0%';
-        progressLeft.textContent='—';
-        progressRight.textContent='—';
-        progressIndicator.textContent='Étape 0/0';
+          timeDisplay.textContent='00:00';
+          progressBar.style.width='0%';
+          if (progressLeft) progressLeft.textContent='—';
+          if (progressRight) progressRight.textContent='—';
+          if (typeof progressIndicator !== 'undefined' && progressIndicator) progressIndicator.textContent='Étape 0/0';
         startBtn.style.display = 'inline-block';
         pauseBtn.style.display = 'none';
         resetBtn.style.display = 'none';
@@ -227,12 +257,12 @@
         return;
       }
       stageEl.textContent = `${current.label} (${current.type})`;
-      timeDisplay.textContent = fmt(remaining);
-      const pct = Math.min(100, (elapsed/totalTime)*100 || 0);
-      progressBar.style.width = pct+'%';
-      progressLeft.textContent = fmt(Math.max(0,totalTime-elapsed-remaining));
-      progressRight.textContent = fmt(totalTime-elapsed);
-      progressIndicator.textContent = `Étape ${idx+1}/${seq.length}`;
+  timeDisplay.textContent = fmt(remaining);
+  const pct = Math.min(100, (elapsed/totalTime)*100 || 0);
+  progressBar.style.width = pct+'%';
+  if (progressLeft) progressLeft.textContent = fmt(Math.max(0,totalTime-elapsed-remaining));
+  if (progressRight) progressRight.textContent = fmt(totalTime-elapsed);
+  if (typeof progressIndicator !== 'undefined' && progressIndicator) progressIndicator.textContent = `Étape ${idx+1}/${seq.length}`;
 
       // Manage button visibility and text
       if (!started) {
@@ -250,6 +280,8 @@
         resetBtn.style.display = 'inline-block';
         startBtn.textContent = 'Reprendre';
       }
+      // Update the overview grid visual
+      try{ renderOverview(); }catch(e){ /* ignore if overview not ready */ }
     }
 
     // --- Wake Lock ---
@@ -328,6 +360,70 @@
 
     // Restore state on page load
     restoreState();
+    // Build and render overview grid (4 columns = 4 parties, rows = exos)
+    function buildOverview(){
+      const ov = document.getElementById('overview');
+      if(!ov) return;
+      ov.innerHTML = '';
+      // create 4x4 = 16 cells, row-major order so cellIndex = row*4 + col
+      for(let r=0;r<4;r++){
+        for(let c=0;c<4;c++){
+          const cell = document.createElement('div');
+          cell.className = 'overview-cell';
+          cell.dataset.row = r; cell.dataset.col = c;
+          const lbl = document.createElement('div'); lbl.className='label'; lbl.textContent = ``;
+          const st = document.createElement('div'); st.className='status status-empty'; st.innerHTML='';
+          cell.appendChild(lbl); cell.appendChild(st);
+          ov.appendChild(cell);
+        }
+      }
+    }
+
+    function renderOverview(){
+      const ov = document.getElementById('overview');
+      if(!ov) return;
+      const cells = ov.querySelectorAll('.overview-cell');
+      // Extract work items and group them by Partie number (1..4)
+      const workItems = [];
+      seq.forEach((s,i)=>{
+        if(s.type === 'work'){
+          // try to parse "Partie N" and optional Exos M
+          const m = /Partie\s*(\d+)/i.exec(s.label);
+          const part = m ? Math.max(1, Math.min(4, parseInt(m[1],10))) : 1;
+          workItems.push({i, label: s.label, part});
+        }
+      });
+
+      // Build columns: for part 1..4, get its items in sequence order
+      const cols = [[],[],[],[]];
+      workItems.forEach(w=>{ const p = (w.part||1)-1; if(p<0||p>3) return; cols[p].push(w); });
+
+      // Fill cells: for each cell at (row, col) map to cols[col][row]
+      cells.forEach(cell=>{
+        const r = parseInt(cell.dataset.row,10);
+        const c = parseInt(cell.dataset.col,10);
+        const lbl = cell.querySelector('.label');
+        const st = cell.querySelector('.status');
+        const item = (cols[c] && cols[c][r]) ? cols[c][r] : null;
+        if(item){
+          lbl.textContent = item.label.length>16? item.label.slice(0,16)+'…': item.label;
+        } else {
+          lbl.textContent = '';
+        }
+
+        if(!item){
+          st.textContent=''; st.className='status status-empty';
+        } else if(item.i < idx){
+          st.textContent='🟩'; st.className='status status-done';
+        } else if(item.i === idx){
+          st.textContent = running? '⏳' : '🟦'; st.className='status status-now';
+        } else {
+          st.textContent=''; st.className='status status-empty';
+        }
+      });
+    }
+
+    buildOverview();
     updateUI();
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
