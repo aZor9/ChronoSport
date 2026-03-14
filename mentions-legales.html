@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" data-bs-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,22 +8,16 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     :root {
-      --bg:#071022;
-      --card:#0a1b2f;
-      --text:#e6eef6;
-      --muted:#cbd5e1;
       --accent:#38bdf8;
       --border:rgba(255,255,255,.12);
     }
 
     body {
       margin: 0;
-      color: var(--text);
       background:
         radial-gradient(circle at 15% 20%, rgba(56,189,248,.16), transparent 30%),
         radial-gradient(circle at 90% 80%, rgba(14,165,233,.16), transparent 24%),
         linear-gradient(180deg, #050c1a 0%, #0a1b2f 100%);
-      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -36,17 +30,7 @@
       backdrop-filter: blur(4px);
     }
 
-    h1, h2 {
-      color: #fff;
-    }
-
-    .muted {
-      color: var(--muted);
-    }
-
-    a {
-      color: var(--accent);
-    }
+    .link-accent { color: var(--accent); }
 
     .btn-outline-light:hover {
       border-color: var(--accent);
@@ -67,20 +51,20 @@
             </div>
           </div>
 
-          <p class="muted mb-4">
+          <p class="text-body-secondary mb-4">
             Dernière mise à jour : 14 mars 2026
           </p>
 
           <h2 class="h5">Éditeur du site</h2>
           <p>
             ChronoSport est édité par Hugo Lembrez.<br>
-            Contact : <a href="mailto:contact@hugo-lembrez.fr">contact@hugo-lembrez.fr</a>
+            Contact : <a class="link-accent" href="mailto:contact@hugo-lembrez.fr">contact@hugo-lembrez.fr</a>
           </p>
 
           <h2 class="h5">Nom de domaine et hébergement</h2>
           <p>
             Le site est accessible à l'adresse
-            <a href="https://sport.hugo-lembrez.fr/" target="_blank" rel="noopener noreferrer">sport.hugo-lembrez.fr</a>.<br>
+            <a class="link-accent" href="https://sport.hugo-lembrez.fr/" target="_blank" rel="noopener noreferrer">sport.hugo-lembrez.fr</a>.<br>
             Le sous-domaine est géré via OVH (DNS).<br>
             Le site est publié et hébergé via GitHub Pages.
           </p>
@@ -103,7 +87,7 @@
           <p class="mb-0">
             Le site ChronoSport ne collecte pas de données personnelles via formulaire dans sa version actuelle.
             Pour toute question liée à la confidentialité, contactez
-            <a href="mailto:contact@hugo-lembrez.fr">contact@hugo-lembrez.fr</a>.
+            <a class="link-accent" href="mailto:contact@hugo-lembrez.fr">contact@hugo-lembrez.fr</a>.
           </p>
         </section>
       </div>

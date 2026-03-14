@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" data-bs-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,34 +7,40 @@
   <meta name="description" content="ChronoSport - minuteur 4 Fantastiques, accessible via sport.hugo-lembrez.fr.">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    /* Theme colors: increased contrast for accessibility */
-    :root{
-      --bg:#071022; /* page background */
-      --card:#071626; /* card background (slightly lighter than page) */
-      --accent:#38bdf8;
-      --muted:#f1f5f9; /* very light muted color for high contrast */
-      --text:#e6eef6;
-      --border:rgba(255,255,255,0.08);
+    :root {
+      --cs-accent: #38bdf8;
+      --cs-border: rgba(255,255,255,.14);
     }
-    body{background:linear-gradient(180deg,#071022 0%,#071626 100%);color:var(--text);font-family:Inter,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial}
-    .card{background:var(--card);border:1px solid rgba(255,255,255,0.03);border-radius:12px}
-    .big-time{font-weight:700;font-size:clamp(2.4rem,5vw,4rem);letter-spacing:2px}
-    .sub{color:var(--muted)}
-    .btn-accent{background:var(--accent);color:#042028}
-    .progress{height:12px;border-radius:8px;background:rgba(255,255,255,0.04)}
-    .stage-label{font-weight:700}
-    .small-muted{font-size:.9rem;color:var(--muted)}
-    .controls .form-control{background:transparent;color:inherit;border-color:var(--border)}
-    .toggle-wake{cursor:pointer}
-    footer{opacity:.75;font-size:.85rem}
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 12% 20%, rgba(56,189,248,.18), transparent 30%),
+        radial-gradient(circle at 88% 82%, rgba(14,165,233,.16), transparent 24%),
+        linear-gradient(180deg, #050c1a 0%, #0a1b2f 100%);
+    }
+
+    .app-surface {
+      background: rgba(7, 22, 38, 0.9);
+      border: 1px solid var(--cs-border);
+      backdrop-filter: blur(4px);
+    }
+
+    .timer-display {
+      font-weight: 700;
+      font-size: clamp(2.5rem, 6vw, 4.3rem);
+      letter-spacing: .08rem;
+      line-height: 1;
+    }
 
   /* Overview grid styles (compact + phone-friendly) */
   /* use auto columns so cells don't stretch to full width; grid centered */
   .overview-grid{display:grid;grid-template-columns:repeat(4,auto);gap:8px;justify-content:center;justify-items:center}
   /* smaller fixed-size boxes (won't fill parent), centered in grid */
-  .overview-cell{width:44px;height:44px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:8px;padding:4px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .overview-cell{width:44px;height:44px;background:rgba(255,255,255,0.02);border:1px solid var(--cs-border);border-radius:8px;padding:4px;display:flex;flex-direction:column;align-items:center;justify-content:center}
   /* hide labels for now (can be restored by removing display:none) */
-  .overview-cell .label{font-size:.7rem;color:var(--muted);text-align:center;display:none}
+  .overview-cell .label{font-size:.7rem;color:var(--bs-secondary-color);text-align:center;display:none}
   /* Emoji larger for visibility inside small cell */
   .overview-cell .status{font-size:2.4rem;line-height:1;margin-top:0}
   .status-done{color:#16a34a} /* green */
@@ -53,82 +59,42 @@
     .overview-cell .status{font-size:2.6rem}
   }
 
-    /* Responsiveness improvements */
-    .controls{gap:.5rem}
-    /* default button sizing (desktop) */
-    .controls .btn{min-width:110px}
-    /* Tablet: relax min-width so buttons don't overflow */
-    @media (max-width:992px){
-      .controls .btn{min-width:90px;padding-left:.5rem;padding-right:.5rem;font-size:.9rem}
-      /* slightly smaller big time on tablets */
-      .big-time{font-size:4rem}
-      .card{padding:1rem}
-    }
-    @media (max-width:768px){
-      /* slightly larger timer on small mobile devices for readability */
-      .big-time{font-size:3.5rem}
-      .controls{flex-wrap:wrap}
-      .controls .btn{flex:1;min-width:0}
-      .card{padding:1rem}
+    #progressBar {
+      background: linear-gradient(90deg, #0ea5e9 0%, #38bdf8 100%);
     }
 
-    /* Add hover effect for control buttons */
-    .controls .btn:hover {
-      border: 2px solid var(--accent);
+    .footer-link {
+      color: var(--cs-accent);
+      text-decoration: none;
     }
 
-    /* Make bootstrap's text-muted lighten to match theme */
-    .text-muted{color:var(--muted) !important}
-
-    /* Ensure headings are bright on the dark background */
-    h1,h2,h3,h4,h5,h6{ color:var(--text); }
-
-    /* Make main display texts explicitly bright for readability */
-    #stage, #timeDisplay, #roundInfo { color: #ffffff; }
-
-    /* Small tweaks so input labels and lists are clearer */
-    label.form-label{color:var(--muted)}
-    ul.small-muted{color:var(--muted);margin-left:1rem}
-
-    .site-footer{
-      max-width: 960px;
-      margin: 1rem auto 0;
-      padding: 0 .75rem 1rem;
+    .footer-link:hover {
+      text-decoration: underline;
     }
-
-    .site-footer .footer-panel{
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: rgba(7,22,38,.68);
-      padding: .75rem 1rem;
-    }
-
-    .site-footer a{ color: var(--accent); text-decoration: none; }
-    .site-footer a:hover{ text-decoration: underline; }
   </style>
 </head>
 <body>
-  <div class="container py-4">
+  <div class="container py-4 py-md-5">
     <div class="row justify-content-center">
-      <div class="col-lg-8 col-md-10">
-        <div class="card p-4 shadow-sm">
+      <div class="col-lg-9 col-xl-8">
+        <div class="app-surface rounded-4 shadow-lg p-3 p-md-4 p-lg-5">
           <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-              <h3 class="mb-0">Chronomètre - 4 Fantastiques</h3>
+              <h1 class="h3 mb-0">4 Fantastiques</h1>
             </div>
             <div class="text-end">
-              <div class="small-muted">Écran <span id="wakeStatus" class="fw-bold">Inactif</span></div>
+              <div class="small text-secondary">Écran <span id="wakeStatus" class="fw-semibold text-info">Inactif</span></div>
             </div>
           </div>
 
-          <div class="text-center py-3">
-            <div id="stage" class="stage-label mb-2">Prêt</div>
-            <div id="timeDisplay" class="big-time">00:00</div>
+          <div class="text-center py-3 py-md-4">
+            <div id="stage" class="fw-semibold text-uppercase small text-info mb-2">Prêt</div>
+            <div id="timeDisplay" class="timer-display text-white">00:00</div>
             <!-- Removed roundInfo -->
           </div>
 
-          <div class="d-flex gap-2 justify-content-center mb-3 controls">
-            <button id="startBtn" class="btn btn-accent px-4">Démarrer</button>
+          <div class="d-flex flex-wrap gap-2 justify-content-center mb-3">
+            <button id="startBtn" class="btn btn-info px-4">Démarrer</button>
             <button id="pauseBtn" class="btn btn-outline-light px-3">Pause</button>
             <button id="resetBtn" class="btn btn-light px-3">Reset</button>
           </div>
@@ -139,7 +105,7 @@
           </div>
 
           <div class="mb-3">
-            <div class="progress mb-2">
+            <div class="progress mb-2" style="height: 12px;">
               <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%"></div>
             </div>
             <!-- <div class="d-flex justify-content-between small-muted">
@@ -152,7 +118,7 @@
             </div> -->
           </div>
 
-          <div class="d-flex justify-content-between">
+          <div class="d-grid d-md-flex justify-content-md-between">
             <button id="navigateBtn" class="btn btn-sm btn-outline-light">Aller à l'accueil</button>
           </div>
         </div>
@@ -160,14 +126,14 @@
     </div>
   </div>
 
-  <footer class="site-footer">
-    <div class="footer-panel d-flex flex-wrap gap-2 justify-content-between align-items-center">
-      <div class="small-muted">
+  <footer class="container pb-4">
+    <div class="app-surface rounded-4 px-3 py-3 d-flex flex-wrap gap-2 justify-content-between align-items-center">
+      <div class="small text-secondary">
         <span>ChronoSport</span>
         <span class="mx-1">•</span>
-        <a href="https://sport.hugo-lembrez.fr/" target="_blank" rel="noopener noreferrer">sport.hugo-lembrez.fr</a>
+        <a class="footer-link" href="https://sport.hugo-lembrez.fr/" target="_blank" rel="noopener noreferrer">sport.hugo-lembrez.fr</a>
         <span class="mx-1">•</span>
-        <a href="mailto:contact@hugo-lembrez.fr">contact@hugo-lembrez.fr</a>
+        <a class="footer-link" href="mailto:contact@hugo-lembrez.fr">contact@hugo-lembrez.fr</a>
       </div>
       <a class="btn btn-sm btn-outline-light" href="mentions-legales.html">Mentions légales</a>
     </div>
