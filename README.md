@@ -1,7 +1,7 @@
 # 🕒 Chronomètre Sport
 
 Site web pour gérer facilement les entraînements Tabata ou circuits chronométrés, avec une option spéciale : le **minuteur des 4 Fantastiques**.
-Disponible sur : [ChronoSport](https://azor9.github.io/ChronoSport/)
+Disponible sur : [ChronoSport](https://sport.hugo-lembrez.fr/)
 
 ---
 
@@ -76,8 +76,15 @@ Fonctionne sur la plupart des navigateurs modernes.
 ```
 index.html         # Page principale avec le mode Tabata, 4 fantastiques et un mode personnalisable
 4fantastiques.html # Page dédiée au mode "4 Fantastiques"
+mentions-legales.html # Page de mentions légales
 README.md          # Documentation du projet
 ```
+
+---
+
+## 📬 Contact
+
+Pour toute demande : **contact@hugo-lembrez.fr**
 
 ---
 
