@@ -2,6 +2,7 @@
 <html lang="fr" data-bs-theme="dark">
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ChronoSport - 4 Fantastiques</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%231a2a6c'/%3E%3Cstop offset='100%25' stop-color='%236b0f3b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='50' fill='url(%23g)'/%3E%3Ctext x='50' y='70' font-size='50' text-anchor='middle'%3E⏰%3C/text%3E%3C/svg%3E">
@@ -37,8 +38,8 @@
           </div>
 
           <div class="mb-3">
-            <div class="progress mb-2" style="height: 12px;">
-              <div id="progressBar" class="progress-bar" role="progressbar" aria-label="Progression de la séquence" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="width:0%"></div>
+            <div class="progress mb-2">
+              <div id="progressBar" class="progress-bar" role="progressbar" aria-label="Progression de la séquence" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
             </div>
           </div>
 
@@ -64,96 +65,6 @@
   </footer>
 
   <script src="assets/chrono.js"></script>
-  <script>
-    'use strict';
-    const $ = (id) => document.getElementById(id);
-
-    const SEQ_4F = [
-      { label: 'Partie 1 : Exos 1', duration: 30, type: 'work' },
-      { label: 'Pause', duration: 10, type: 'rest' },
-      { label: 'Partie 2 : Exos 1', duration: 30, type: 'work' },
-      { label: 'Partie 2 : Exos 2', duration: 30, type: 'work' },
-      { label: 'Pause', duration: 10, type: 'rest' },
-      { label: 'Partie 3 : Exos 1', duration: 30, type: 'work' },
-      { label: 'Partie 3 : Exos 2', duration: 30, type: 'work' },
-      { label: 'Partie 3 : Exos 3', duration: 30, type: 'work' },
-      { label: 'Pause', duration: 10, type: 'rest' },
-      { label: 'Partie 4 : Exos 1', duration: 30, type: 'work' },
-      { label: 'Partie 4 : Exos 2', duration: 30, type: 'work' },
-      { label: 'Partie 4 : Exos 3', duration: 30, type: 'work' },
-      { label: 'Partie 4 : Exos 4', duration: 30, type: 'work' }
-    ];
-
-    // --- Elements ---
-    const el = { stage: $('stage'), time: $('timeDisplay'), progress: $('progressBar'), baseTitle: document.title };
-    const controls = { startBtn: $('startBtn'), pauseBtn: $('pauseBtn'), resetBtn: $('resetBtn') };
-    const overview = $('overview');
-
-    // --- Grille d'avancement ---
-    // Colonne = numéro de partie (extrait du label), ligne = rang de l'exo dans la partie.
-    const cols = [[], [], [], []];
-    SEQ_4F.forEach((s, i) => {
-      if (s.type !== 'work') return;
-      const m = /Partie\s*(\d+)/i.exec(s.label);
-      const part = m ? Math.max(1, Math.min(4, parseInt(m[1], 10))) : 1;
-      cols[part - 1].push({ i, label: s.label });
-    });
-
-    const cells = [];
-    for (let r = 0; r < 4; r++) {
-      for (let c = 0; c < 4; c++) {
-        const cell = document.createElement('div');
-        cell.className = 'overview-cell';
-        cell.setAttribute('role', 'listitem');
-        const st = document.createElement('div');
-        st.className = 'status';
-        st.setAttribute('aria-hidden', 'true');
-        cell.appendChild(st);
-        overview.appendChild(cell);
-        cells.push({ cell, st, item: cols[c][r] || null });
-      }
-    }
-
-    function renderOverview(snap){
-      for (const { cell, st, item } of cells) {
-        let icon = '', state = '';
-        if (item) {
-          if (snap.finished || item.i < snap.idx) { icon = '🟩'; state = 'terminé'; }
-          else if (item.i === snap.idx) { icon = snap.running ? '⏳' : '🟦'; state = 'en cours'; }
-          else state = 'à venir';
-        }
-        if (st.textContent !== icon) st.textContent = icon;
-        if (item) cell.setAttribute('aria-label', `${item.label} : ${state}`);
-        else cell.setAttribute('aria-hidden', 'true');
-      }
-    }
-
-    // --- Minuteur ---
-    function syncWake(snap){
-      if (snap.running) Chrono.wake.acquire();
-      else Chrono.wake.release();
-    }
-
-    const timer = Chrono.createTimer({
-      storageKey: 'chronoSport:4f:v2',
-      hooks: {
-        render(snap){ Chrono.renderCommon(snap, el); renderOverview(snap); },
-        state(snap){ Chrono.renderControls(snap, controls); syncWake(snap); updateSoundHint(); },
-        step(){ Chrono.audio.beep(false); },
-        countdown(){ Chrono.audio.beep(true); },
-        finish(){ Chrono.audio.beep(false); }
-      }
-    });
-
-    const updateSoundHint = Chrono.bindSoundHint($('soundHint'), () => timer.snapshot().running);
-    Chrono.wake.onChange((status) => { $('wakeStatus').textContent = status; });
-
-    controls.startBtn.addEventListener('click', () => timer.start());
-    controls.pauseBtn.addEventListener('click', () => timer.pause());
-    controls.resetBtn.addEventListener('click', () => timer.load(SEQ_4F));
-
-    // --- Init : restaure l'état (même en cours de séance) si la séquence n'a pas changé ---
-    if (!timer.restore() || JSON.stringify(timer.seq) !== JSON.stringify(SEQ_4F)) timer.load(SEQ_4F);
-  </script>
+  <script src="assets/4fantastiques.js"></script>
 </body>
 </html>

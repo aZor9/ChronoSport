@@ -26,7 +26,12 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+.progress {
+  height: 12px;
+}
+
 #progressBar {
+  width: 0;
   background: linear-gradient(90deg, #0ea5e9 0%, #38bdf8 100%);
   transition: width .2s linear;
 }
@@ -42,6 +47,19 @@ body {
 
 .footer-link:hover {
   text-decoration: underline;
+}
+
+/* Mentions légales */
+.legal-card {
+  background: rgba(7, 22, 38, 0.92);
+  border: 1px solid var(--cs-border);
+  border-radius: 14px;
+  backdrop-filter: blur(4px);
+}
+
+.legal-card .btn-outline-light:hover {
+  border-color: var(--cs-accent);
+  color: var(--cs-accent);
 }
 
 /* Grille d'avancement (4 Fantastiques) : 4 colonnes = 4 parties */
