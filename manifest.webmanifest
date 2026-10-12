@@ -1,0 +1,28 @@
+{
+  "name": "ChronoSport",
+  "short_name": "ChronoSport",
+  "description": "Minuteur Tabata et 4 Fantastiques, utilisable hors connexion.",
+  "lang": "fr",
+  "dir": "ltr",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#050c1a",
+  "theme_color": "#050c1a",
+  "categories": ["sports", "health", "fitness"],
+  "icons": [
+    { "src": "/assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/assets/icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    {
+      "name": "4 Fantastiques",
+      "short_name": "4F",
+      "url": "/4fantastiques.html",
+      "icons": [{ "src": "/assets/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ]
+}
