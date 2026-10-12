@@ -2,127 +2,57 @@
 <html lang="fr" data-bs-theme="dark">
 <head>
   <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ChronoSport - 4 Fantastiques</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%231a2a6c'/%3E%3Cstop offset='100%25' stop-color='%236b0f3b'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='50' fill='url(%23g)'/%3E%3Ctext x='50' y='70' font-size='50' text-anchor='middle'%3E⏰%3C/text%3E%3C/svg%3E">
+  <link rel="icon" href="/favicon.ico" sizes="32x32">
+  <link rel="icon" href="/assets/icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#050c1a">
+  <meta name="apple-mobile-web-app-title" content="ChronoSport">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="description" content="ChronoSport - minuteur 4 Fantastiques, accessible via sport.hugo-lembrez.fr.">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    :root {
-      --cs-accent: #38bdf8;
-      --cs-border: rgba(255,255,255,.14);
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background:
-        radial-gradient(circle at 12% 20%, rgba(56,189,248,.18), transparent 30%),
-        radial-gradient(circle at 88% 82%, rgba(14,165,233,.16), transparent 24%),
-        linear-gradient(180deg, #050c1a 0%, #0a1b2f 100%);
-    }
-
-    .app-surface {
-      background: rgba(7, 22, 38, 0.9);
-      border: 1px solid var(--cs-border);
-      backdrop-filter: blur(4px);
-    }
-
-    .timer-display {
-      font-weight: 700;
-      font-size: clamp(2.5rem, 6vw, 4.3rem);
-      letter-spacing: .08rem;
-      line-height: 1;
-    }
-
-  /* Overview grid styles (compact + phone-friendly) */
-  /* use auto columns so cells don't stretch to full width; grid centered */
-  .overview-grid{display:grid;grid-template-columns:repeat(4,auto);gap:8px;justify-content:center;justify-items:center}
-  /* smaller fixed-size boxes (won't fill parent), centered in grid */
-  .overview-cell{width:44px;height:44px;background:rgba(255,255,255,0.02);border:1px solid var(--cs-border);border-radius:8px;padding:4px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-  /* hide labels for now (can be restored by removing display:none) */
-  .overview-cell .label{font-size:.7rem;color:var(--bs-secondary-color);text-align:center;display:none}
-  /* Emoji larger for visibility inside small cell */
-  .overview-cell .status{font-size:2.4rem;line-height:1;margin-top:0}
-  .status-done{color:#16a34a} /* green */
-  .status-now{color:#0ea5e9} /* blue */
-  .status-empty{color:rgba(255,255,255,0.12)}
-
-  /* Extra small phones: make boxes a bit smaller but keep emoji readable */
-  @media (max-width:420px){
-    .overview-cell{width:40px;height:40px;padding:3px;border-radius:6px}
-    .overview-cell .status{font-size:2.6rem}
-    .overview-grid{gap:6px}
-  }
-
-  @media (min-width:421px) and (max-width:768px){
-    .overview-cell{width:46px;height:46px}
-    .overview-cell .status{font-size:2.6rem}
-  }
-
-    #progressBar {
-      background: linear-gradient(90deg, #0ea5e9 0%, #38bdf8 100%);
-    }
-
-    .footer-link {
-      color: var(--cs-accent);
-      text-decoration: none;
-    }
-
-    .footer-link:hover {
-      text-decoration: underline;
-    }
-  </style>
+  <link href="assets/vendor/bootstrap.min.css" rel="stylesheet">
+  <link href="assets/style.css" rel="stylesheet">
 </head>
 <body>
   <div class="container py-4 py-md-5">
     <div class="row justify-content-center">
       <div class="col-lg-9 col-xl-8">
-        <div class="app-surface rounded-4 shadow-lg p-3 p-md-4 p-lg-5">
+        <main class="app-surface rounded-4 shadow-lg p-3 p-md-4 p-lg-5">
           <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-              <h1 class="h3 mb-0">4 Fantastiques</h1>
-            </div>
-            <div class="text-end">
-              <div class="small text-secondary">Écran <span id="wakeStatus" class="fw-semibold text-info">Inactif</span></div>
-            </div>
+            <h1 class="h3 mb-0">4 Fantastiques</h1>
+            <div class="small text-secondary">Écran <span id="wakeStatus" class="fw-semibold text-info">Inactif</span></div>
           </div>
 
           <div class="text-center py-3 py-md-4">
-            <div id="stage" class="fw-semibold text-uppercase small text-info mb-2">Prêt</div>
+            <div id="stage" class="fw-semibold text-uppercase small text-info mb-2" aria-live="polite">Prêt</div>
             <div id="timeDisplay" class="timer-display text-white">00:00</div>
-            <!-- Removed roundInfo -->
+            <div id="soundHint" class="small text-warning mt-2" hidden>🔇 Touchez l'écran pour réactiver les bips</div>
           </div>
 
           <div class="d-flex flex-wrap gap-2 justify-content-center mb-3">
             <button id="startBtn" class="btn btn-info px-4">Démarrer</button>
-            <button id="pauseBtn" class="btn btn-outline-light px-3">Pause</button>
-            <button id="resetBtn" class="btn btn-light px-3">Reset</button>
+            <button id="pauseBtn" class="btn btn-outline-light px-3" hidden>Pause</button>
+            <button id="resetBtn" class="btn btn-light px-3" hidden>Reset</button>
           </div>
 
-          <!-- Overview grid: large 4x4 visual helper -->
+          <!-- Grille d'avancement : 4 colonnes = 4 parties, lignes = exos -->
           <div class="mb-3">
-            <div id="overview" class="overview-grid" aria-label="Vue d'ensemble des exercices"></div>
+            <div id="overview" class="overview-grid" role="list" aria-label="Vue d'ensemble des exercices"></div>
           </div>
 
           <div class="mb-3">
-            <div class="progress mb-2" style="height: 12px;">
-              <div id="progressBar" class="progress-bar" role="progressbar" style="width:0%"></div>
+            <div class="progress mb-2">
+              <div id="progressBar" class="progress-bar" role="progressbar" aria-label="Progression de la séquence" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
             </div>
-            <!-- <div class="d-flex justify-content-between small-muted">
-              <div id="progressLeft">—</div>
-              <div id="progressRight">—</div>
-            </div> -->
-            <!-- Custom progress indicator -->
-            <!-- <div class="text-center mt-2">
-              <span id="progressIndicator" class="small-muted">Étape 0/0</span>
-            </div> -->
           </div>
 
           <div class="d-grid d-md-flex justify-content-md-between">
-            <button id="navigateBtn" class="btn btn-sm btn-outline-light">Aller à l'accueil</button>
+            <a href="index.html" class="btn btn-sm btn-outline-light">Aller à l'accueil</a>
           </div>
-        </div>
+        </main>
       </div>
     </div>
   </div>
@@ -140,289 +70,8 @@
     </div>
   </footer>
 
-  <audio id="beep"></audio>
-
-  <script>
-    // --- Utils ---
-    const fmt = (s)=>{ const m=Math.floor(s/60); const sec=s%60; return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}` }
-
-    // --- Elements ---
-    const timeDisplay=document.getElementById('timeDisplay');
-    const stageEl=document.getElementById('stage');
-    const progressBar=document.getElementById('progressBar');
-    const progressLeft=document.getElementById('progressLeft');
-    const progressRight=document.getElementById('progressRight');
-
-    const startBtn=document.getElementById('startBtn');
-    const pauseBtn=document.getElementById('pauseBtn');
-    const resetBtn=document.getElementById('resetBtn');
-
-    const wakeStatus=document.getElementById('wakeStatus');
-    const beepEl=document.getElementById('beep');
-    beepEl.src = "data:audio/wav;base64,UklGRrQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YbQAAAAA"; // tiny silent placeholder
-
-    // --- State ---
-    let seq = [
-      {label:'Partie 1 : Exos 1', duration:30, type:'work'},
-      {label:'Pause', duration:10, type:'rest'},
-      {label:'Partie 2 : Exos 1', duration:30, type:'work'},
-      {label:'Partie 2 : Exos 2', duration:30, type:'work'},
-      {label:'Pause', duration:10, type:'rest'},
-      {label:'Partie 3 : Exos 1', duration:30, type:'work'},
-      {label:'Partie 3 : Exos 2', duration:30, type:'work'},
-      {label:'Partie 3 : Exos 3', duration:30, type:'work'},
-      {label:'Pause', duration:10, type:'rest'},
-      {label:'Partie 4 : Exos 1', duration:30, type:'work'},
-      {label:'Partie 4 : Exos 2', duration:30, type:'work'},
-      {label:'Partie 4 : Exos 3', duration:30, type:'work'},
-      {label:'Partie 4 : Exos 4', duration:30, type:'work'}
-    ];
-    let idx = 0;
-    let remaining = seq[0].duration;
-    let running=false;
-    let intervalId=null;
-    let totalTime=seq.reduce((a,b)=>a+b.duration,0);
-    let elapsed=0;
-    let started=false;
-
-    // --- Persist State in LocalStorage ---
-    function saveState() {
-      const state = {
-        idx,
-        remaining,
-        running,
-        started,
-        elapsed,
-        timestamp: Date.now() // Save the current timestamp
-      };
-      localStorage.setItem('chronoState', JSON.stringify(state));
-    }
-
-    function restoreState() {
-      const savedState = localStorage.getItem('chronoState');
-      if (savedState) {
-        const state = JSON.parse(savedState);
-        idx = state.idx;
-        remaining = state.remaining;
-        running = state.running;
-        started = state.started;
-        elapsed = state.elapsed;
-
-        // Synchronize the timer based on the elapsed time since the last save
-        const lastSavedTime = state.timestamp;
-        const now = Date.now();
-        const deltaSeconds = Math.floor((now - lastSavedTime) / 1000);
-
-        if (running) {
-          remaining -= deltaSeconds;
-          elapsed += deltaSeconds;
-
-          // If the current step is completed, move to the next step
-          while (remaining <= 0 && idx < seq.length - 1) {
-            elapsed += remaining; // Add the negative remaining to elapsed
-            idx++;
-            remaining += seq[idx].duration;
-          }
-
-          // If the sequence is finished, stop the timer
-          if (remaining <= 0 && idx >= seq.length - 1) {
-            running = false;
-            started = false;
-            remaining = 0;
-            idx = seq.length - 1;
-          } else {
-            intervalId = setInterval(tick, 1000); // Ensure the timer continues ticking
-          }
-        }
-      }
-    }
-
-    // --- Update UI to manage button visibility and text ---
-    function updateUI(){
-      const current = seq[idx];
-      if(!current){
-        stageEl.textContent='Prêt';
-          timeDisplay.textContent='00:00';
-          progressBar.style.width='0%';
-          if (progressLeft) progressLeft.textContent='—';
-          if (progressRight) progressRight.textContent='—';
-          if (typeof progressIndicator !== 'undefined' && progressIndicator) progressIndicator.textContent='Étape 0/0';
-        startBtn.style.display = 'inline-block';
-        pauseBtn.style.display = 'none';
-        resetBtn.style.display = 'none';
-        startBtn.textContent = 'Démarrer';
-        return;
-      }
-      stageEl.textContent = `${current.label} (${current.type})`;
-  timeDisplay.textContent = fmt(remaining);
-  const pct = Math.min(100, (elapsed/totalTime)*100 || 0);
-  progressBar.style.width = pct+'%';
-  if (progressLeft) progressLeft.textContent = fmt(Math.max(0,totalTime-elapsed-remaining));
-  if (progressRight) progressRight.textContent = fmt(totalTime-elapsed);
-  if (typeof progressIndicator !== 'undefined' && progressIndicator) progressIndicator.textContent = `Étape ${idx+1}/${seq.length}`;
-
-      // Manage button visibility and text
-      if (!started) {
-        startBtn.style.display = 'inline-block';
-        pauseBtn.style.display = 'none';
-        resetBtn.style.display = 'none';
-        startBtn.textContent = 'Démarrer';
-      } else if (running) {
-        startBtn.style.display = 'none';
-        pauseBtn.style.display = 'inline-block';
-        resetBtn.style.display = 'inline-block';
-      } else {
-        startBtn.style.display = 'inline-block';
-        pauseBtn.style.display = 'none';
-        resetBtn.style.display = 'inline-block';
-        startBtn.textContent = 'Reprendre';
-      }
-      // Update the overview grid visual
-      try{ renderOverview(); }catch(e){ /* ignore if overview not ready */ }
-    }
-
-    // --- Wake Lock ---
-    let wakeLock = null;
-
-    async function requestWakeLock() {
-      try {
-        if ('wakeLock' in navigator) {
-          wakeLock = await navigator.wakeLock.request('screen');
-          wakeStatus.textContent = 'Actif';
-        }
-      } catch (err) {
-        console.error('Failed to acquire wake lock:', err);
-      }
-    }
-
-    async function releaseWakeLock() {
-      try {
-        if (wakeLock) {
-          await wakeLock.release();
-          wakeLock = null;
-          wakeStatus.textContent = 'Inactif';
-        }
-      } catch (err) {
-        console.error('Failed to release wake lock:', err);
-      }
-    }
-
-    // --- Timer Logic ---
-    function tick(){
-      if(!running) return;
-      if(remaining>0){ remaining--; elapsed++; updateUI(); saveState(); if(remaining<=3 && remaining>0) playBeep(remaining); }
-      else {
-        playBeep(0);
-        idx++;
-        if(idx>=seq.length){
-          running=false; started=false; clearInterval(intervalId); intervalId=null; stageEl.textContent='Terminé'; timeDisplay.textContent='00:00'; progressBar.style.width='100%';
-          saveState();
-          return;
-        }
-        remaining = seq[idx].duration;
-        updateUI();
-        saveState();
-      }
-    }
-
-    function start(){ if(!seq.length) return; if(!running){ running=true; started=true; intervalId = setInterval(tick,1000); saveState(); requestWakeLock(); } }
-    function pause(){ running=false; if(intervalId){ clearInterval(intervalId); intervalId=null; saveState(); releaseWakeLock(); } }
-    function reset(){ pause(); started=false; idx=0; remaining=seq[0].duration; elapsed=0; updateUI(); saveState(); }
-
-    // --- Event Listeners ---
-    startBtn.addEventListener('click', ()=>{ start(); updateUI(); });
-    pauseBtn.addEventListener('click', ()=>{ if(running) pause(); else start(); updateUI(); });
-    resetBtn.addEventListener('click', ()=>{ reset(); updateUI(); });
-
-    // Navigation button
-    const navigateBtn = document.getElementById('navigateBtn');
-    navigateBtn.addEventListener('click', ()=>{
-      releaseWakeLock(); // Release wake lock before navigating
-      window.location.href = 'index.html';
-    });
-
-    function playBeep(n){
-      try{
-        const ctx = new (window.AudioContext||window.webkitAudioContext)();
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        o.type='sine';
-        o.frequency.value = n>0? 880 : 440;
-        g.gain.value = 0.6;
-        o.connect(g); g.connect(ctx.destination);
-        o.start(); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.18);
-        o.stop(ctx.currentTime + 0.19);
-      }catch(e){ console.warn('Audio API not available',e); }
-    }
-
-    // Restore state on page load
-    restoreState();
-    // Build and render overview grid (4 columns = 4 parties, rows = exos)
-    function buildOverview(){
-      const ov = document.getElementById('overview');
-      if(!ov) return;
-      ov.innerHTML = '';
-      // create 4x4 = 16 cells, row-major order so cellIndex = row*4 + col
-      for(let r=0;r<4;r++){
-        for(let c=0;c<4;c++){
-          const cell = document.createElement('div');
-          cell.className = 'overview-cell';
-          cell.dataset.row = r; cell.dataset.col = c;
-          const lbl = document.createElement('div'); lbl.className='label'; lbl.textContent = ``;
-          const st = document.createElement('div'); st.className='status status-empty'; st.innerHTML='';
-          cell.appendChild(lbl); cell.appendChild(st);
-          ov.appendChild(cell);
-        }
-      }
-    }
-
-    function renderOverview(){
-      const ov = document.getElementById('overview');
-      if(!ov) return;
-      const cells = ov.querySelectorAll('.overview-cell');
-      // Extract work items and group them by Partie number (1..4)
-      const workItems = [];
-      seq.forEach((s,i)=>{
-        if(s.type === 'work'){
-          // try to parse "Partie N" and optional Exos M
-          const m = /Partie\s*(\d+)/i.exec(s.label);
-          const part = m ? Math.max(1, Math.min(4, parseInt(m[1],10))) : 1;
-          workItems.push({i, label: s.label, part});
-        }
-      });
-
-      // Build columns: for part 1..4, get its items in sequence order
-      const cols = [[],[],[],[]];
-      workItems.forEach(w=>{ const p = (w.part||1)-1; if(p<0||p>3) return; cols[p].push(w); });
-
-      // Fill cells: for each cell at (row, col) map to cols[col][row]
-      cells.forEach(cell=>{
-        const r = parseInt(cell.dataset.row,10);
-        const c = parseInt(cell.dataset.col,10);
-        const lbl = cell.querySelector('.label');
-        const st = cell.querySelector('.status');
-        const item = (cols[c] && cols[c][r]) ? cols[c][r] : null;
-        if(item){
-          lbl.textContent = item.label.length>16? item.label.slice(0,16)+'…': item.label;
-        } else {
-          lbl.textContent = '';
-        }
-
-        if(!item){
-          st.textContent=''; st.className='status status-empty';
-        } else if(item.i < idx){
-          st.textContent='🟩'; st.className='status status-done';
-        } else if(item.i === idx){
-          st.textContent = running? '⏳' : '🟦'; st.className='status status-now';
-        } else {
-          st.textContent=''; st.className='status status-empty';
-        }
-      });
-    }
-
-    buildOverview();
-    updateUI();
-  </script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/chrono.js"></script>
+  <script src="assets/4fantastiques.js"></script>
+  <script src="/assets/pwa.js"></script>
 </body>
 </html>

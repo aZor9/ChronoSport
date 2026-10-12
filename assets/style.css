@@ -1,0 +1,77 @@
+:root {
+  --cs-accent: #38bdf8;
+  --cs-border: rgba(255,255,255,.14);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(56,189,248,.18), transparent 30%),
+    radial-gradient(circle at 88% 82%, rgba(14,165,233,.16), transparent 24%),
+    linear-gradient(180deg, #050c1a 0%, #0a1b2f 100%);
+}
+
+.app-surface {
+  background: rgba(7, 22, 38, 0.9);
+  border: 1px solid var(--cs-border);
+  backdrop-filter: blur(4px);
+}
+
+.timer-display {
+  font-weight: 700;
+  font-size: clamp(2.5rem, 6vw, 4.3rem);
+  letter-spacing: .08rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.progress {
+  height: 12px;
+}
+
+#progressBar {
+  width: 0;
+  background: linear-gradient(90deg, #0ea5e9 0%, #38bdf8 100%);
+  transition: width .2s linear;
+}
+
+.footer-link,
+.link-accent {
+  color: var(--cs-accent);
+}
+
+.footer-link {
+  text-decoration: none;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+}
+
+/* Mentions légales */
+.legal-card {
+  background: rgba(7, 22, 38, 0.92);
+  border: 1px solid var(--cs-border);
+  border-radius: 14px;
+  backdrop-filter: blur(4px);
+}
+
+.legal-card .btn-outline-light:hover {
+  border-color: var(--cs-accent);
+  color: var(--cs-accent);
+}
+
+/* Grille d'avancement (4 Fantastiques) : 4 colonnes = 4 parties */
+.overview-grid { display: grid; grid-template-columns: repeat(4, auto); gap: 8px; justify-content: center; justify-items: center; }
+.overview-cell { width: 44px; height: 44px; background: rgba(255,255,255,0.02); border: 1px solid var(--cs-border); border-radius: 8px; padding: 4px; display: flex; align-items: center; justify-content: center; }
+.overview-cell .status { font-size: 2.4rem; line-height: 1; }
+
+@media (max-width: 420px) {
+  .overview-cell { width: 40px; height: 40px; padding: 3px; border-radius: 6px; }
+  .overview-grid { gap: 6px; }
+}
+
+@media (min-width: 421px) and (max-width: 768px) {
+  .overview-cell { width: 46px; height: 46px; }
+}
