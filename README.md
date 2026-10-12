@@ -39,6 +39,7 @@ Sur la page d'accueil (bouton **4 Fantastiques** ou touche **4**), une séquence
 * ⌨️ Raccourci clavier : appuie sur **4** pour lancer directement le mode 4 Fantastiques.
 * 🔄 **Résiste au rafraîchissement** : le minuteur est calé sur l'horloge réelle, il continue de tourner pendant le rechargement et reprend exactement où il en est (en pause comme en cours).
 * 💾 Les réglages (Tabata, son, boucle, anti-veille) sont mémorisés.
+* 📲 **Application installable (PWA)** : « Ajouter à l'écran d'accueil » sur mobile ou « Installer » sur ordinateur, et **fonctionne hors connexion**.
 
 #### Format d'import JSON
 
@@ -60,6 +61,8 @@ Sur la page d'accueil (bouton **4 Fantastiques** ou touche **4**), une séquence
 * **JavaScript (vanilla)** : logique du chronomètre, gestion des séquences et des sons (Web Audio API)
 * **API Wake Lock** : empêche l’écran de s’éteindre pendant les séances
 * **LocalStorage** : sauvegarde et restauration de l’état du minuteur
+* **PWA** (manifest + service worker) : installation et mode hors connexion
+* **Aucune ressource tierce** : Bootstrap est hébergé dans le dépôt, CSP stricte
 
 ---
 
@@ -90,10 +93,24 @@ Fonctionne sur la plupart des navigateurs modernes.
 index.html            # Page principale : Tabata, 4 Fantastiques, réglages, import/export
 4fantastiques.html    # Page dédiée au mode "4 Fantastiques" (grille d'avancement)
 mentions-legales.html # Page de mentions légales
+404.html              # Page d'erreur GitHub Pages
+manifest.webmanifest  # Manifest PWA
+sw.js                 # Service worker (cache hors connexion)
+favicon.ico
 assets/chrono.js      # Moteur du minuteur partagé (temps, persistance, sons, wake lock)
+assets/index.js       # Logique de la page d'accueil
+assets/4fantastiques.js # Logique de la page 4 Fantastiques
+assets/pwa.js         # Enregistrement du service worker
 assets/style.css      # Styles communs
+assets/icons/         # Icônes (SVG source + PNG)
+assets/vendor/        # Bootstrap 5.3.2 (CSS)
+.well-known/security.txt # Contact pour signaler une faille
+.nojekyll             # Désactive Jekyll (nécessaire pour publier .well-known)
 README.md             # Documentation du projet
 ```
+
+> 🔁 **Mise à jour du site** : le service worker sert d'abord la version en cache puis télécharge la nouvelle en arrière-plan ; elle s'affiche au lancement suivant.
+> Si un fichier est ajouté, renommé ou supprimé, mettre à jour la liste `PRECACHE` et incrémenter `CACHE` dans `sw.js`.
 
 ---
 
