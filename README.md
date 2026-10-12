@@ -19,7 +19,7 @@ Sur la page d'accueil (bouton **4 Fantastiques** ou touche **4**), une séquence
 * 🔹 10 sec de pause
 * 🔹 2 min d’exo
 
-> La page dédiée `4fantastiques.html` propose une variante : 4 parties de 1 à 4 exos de 30 s, séparées par 10 s de pause, avec une grille d'avancement.
+> La page dédiée `4fantastiques.html` suit le même minutage, découpé en blocs de 30 s (la partie N = N exos de 30 s), avec une grille d'avancement.
 
 ---
 
